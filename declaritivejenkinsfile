@@ -1,0 +1,43 @@
+pipeline{
+agent any
+tools {
+  maven  'maven3.8.6'
+}
+stages{
+ stage('CheckoutCode'){
+steps{
+    git credentialsId: '7ad84d5e-3dbc-4ea1-bca3-fddf3a707400', url: 'https://github.com/codingwithmanish/maven-web-application.git'
+}    
+
+ }  
+
+stage('Build'){
+    steps{
+
+        sh "mvn clean package"
+    }
+}
+stage('SonarQubereport'){
+    steps{
+
+        sh "mvn clean sonar:sonar"
+    }
+}
+stage('Nexus'){
+    steps{
+
+        sh "mvn clean deploy"
+    }
+}
+stage('Tomcat'){
+    steps{
+sshagent(['9cd6d34d-46a5-453e-af31-337af37b494e']) 
+{
+sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@3.111.35.82:/opt/apache-tomcat-9.0.64/webapps/"
+}
+        
+    }
+}
+
+}
+}
